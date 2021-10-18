@@ -1,0 +1,7 @@
+trigger ContactPhoneTrigger on Contact (after insert) {
+    for(Contact cont: Trigger.New){
+        if(cont.Phone != null){
+            ContactPhoneTriggerHandler.updatePhoneOnContact((String)cont.Phone, cont.Id);
+        }
+    }
+}
