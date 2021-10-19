@@ -23,6 +23,8 @@ public class TestContactPhoneTriggerHandler {
         ContactPhoneTriggerHandler.updatePhoneOnContact((String)checkContact.Phone, checkContact.Id);
 
         System.assertEquals('Belarus', checkContact.Country_from_Phone__c);
+        
+        
 		        
 	}
 }
