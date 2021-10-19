@@ -1,0 +1,28 @@
+@isTest
+private class TestContactPhoneTrigger {
+    @isTest
+    static void TestCountryName(){
+        
+        StaticResourceCalloutMock mock = new StaticResourceCalloutMock();
+        mock.setStaticResource('CountryLayerBelarus');
+        mock.setStatusCode(200);
+        mock.setHeader('Content-Type', 'application/json');
+        Test.setMock(HttpCalloutMock.class, mock);
+        Test.startTest();
+        
+        Contact testContact = new Contact(
+        		FirstName='Test',
+        		LastName='Contact',
+        		phone='+375-12-3465789');
+        insert testContact;
+        
+        Test.stopTest();
+        
+        Contact checkContact = [select id, name, Country_from_Phone__c
+                               from contact
+                               where id=:testContact.id];
+        
+        System.assertEquals('Belarus', checkContact.Country_from_Phone__c);
+	}
+
+}
