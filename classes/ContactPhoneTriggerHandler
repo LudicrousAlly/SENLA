@@ -9,25 +9,38 @@ public class ContactPhoneTriggerHandler {
         HttpRequest request = new HttpRequest();
         request.setEndpoint(CallingCodeURL+phoneCode+'?access_key='+access_key);
         request.setMethod('GET');
-
+        //System.debug(request.getEndpoint());
         
         HttpResponse response = http.send(request);
         String countryName;
-        
-        List<Object> fieldList = (List<Object>)JSON.deserializeUntyped(response.getBody());
+        //System.debug(response.getBody());
 
-		for(Object fld : fieldList){    
-    		Map<String,Object> data = (Map<String,Object>)fld;
-
-    		countryName = data.get('name').toString();
+        if( response.getBody().substringBetween('[{', '}]') == null ){
+            Map<String,Object> data = (Map<String,Object>)JSON.deserializeUntyped(response.getBody());
+            countryName = (String)data.get('name');
 		}
+        else{
+            List<Object> fieldList = (List<Object>)JSON.deserializeUntyped(response.getBody());
+            for(Object fld : fieldList){    
+    			Map<String,Object> data = (Map<String,Object>)fld;
+    
+    			countryName = data.get('name').toString();
+			}
+        }
+        //system.debug('countryname : ');
+        //system.debug(countryName);
         
         Contact triggeredContact = [select id, name, Country_from_Phone__c
                                    from contact
                                    where id=:contactId];
         triggeredContact.Country_from_Phone__c = countryName;
         update triggeredContact;
-
+        
+        triggeredContact = [select id, name, Country_from_Phone__c
+                                   from contact
+                                   where id=:contactId];
+        //System.debug('triggered contact country from phone:' );
+        //System.debug(triggeredContact.Country_from_Phone__c);
     }
 
 }
