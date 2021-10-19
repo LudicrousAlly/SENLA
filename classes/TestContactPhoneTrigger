@@ -4,7 +4,7 @@ private class TestContactPhoneTrigger {
     static void TestCountryName(){
         
         StaticResourceCalloutMock mock = new StaticResourceCalloutMock();
-        mock.setStaticResource('CountryLayerBelarus');
+        mock.setStaticResource('CountryLayerBelarusCurv');
         mock.setStatusCode(200);
         mock.setHeader('Content-Type', 'application/json');
         Test.setMock(HttpCalloutMock.class, mock);
@@ -23,6 +23,8 @@ private class TestContactPhoneTrigger {
                                where id=:testContact.id];
         
         System.assertEquals('Belarus', checkContact.Country_from_Phone__c);
+        
+        
 	}
 
 }
