@@ -1,0 +1,17 @@
+global class ScheduleRequestedCallNotification 
+	implements Schedulable{
+        
+    public static String CRON = '0 0 22 * * ? *';  //Every Day at 22:00 
+
+    global static String scheduleMe() {
+        ScheduleRequestedCallNotification srcn = new ScheduleRequestedCallNotification(); 
+        return System.schedule('Send Notification About Outdated Tasks', CRON, srcn);
+    }
+
+    global void execute(SchedulableContext sc) {
+
+        RequestedCallNotification rcn = new RequestedCallNotification();
+        Database.executeBatch(rcn);
+    }
+
+}
