@@ -1,0 +1,14 @@
+@isTest
+private class TestScheduleRequestedCallNotification {
+
+    static testMethod void myTestMethod() {        
+         test.starttest();
+         ScheduleRequestedCallNotification srcn = new ScheduleRequestedCallNotification();   
+         String CRON = '0 0 22 * * ? *';        
+         system.schedule('Test Sched', CRON, srcn);
+         Id jobId = ScheduleRequestedCallNotification.scheduleMe();
+         test.stopTest();
+        system.abortJob(jobId);
+    }
+    
+}
