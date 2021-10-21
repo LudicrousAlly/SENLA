@@ -1,0 +1,41 @@
+@isTest
+private class TestRequestedCallNotification {
+    @testSetup
+    static void setup(){
+        List<Task> setupTasks = new List<Task>();
+        User Ilya = [select id, name from user where name='Ilya Tsybulnikov'];
+        Group SalesDep = [select id, name from group where name='Sales Dep'];
+        
+        for(Integer i = 0; i<10;i++){
+            Task tempTask = new Task(
+                ownerid=Ilya.id,
+                status='New',
+                activitydate=date.parse('01/01/2001')
+            );
+            setupTasks.add(tempTask);
+        }
+        
+        for(Integer i = 0; i<10;i++){
+            Task tempTask = new Task(
+                ownerid=SalesDep.id,
+                status='New',
+                activitydate=date.parse('01/01/2001')
+            );
+            setupTasks.add(tempTask);
+        }
+        
+        insert setupTasks;
+	}
+
+    @isTest static void test() {
+        Integer currentOutdatedTasks = [select count() from task where (activitydate < today and status='New')];
+        
+        Test.startTest();
+        RequestedCallNotification rcn = new RequestedCallNotification();
+        Database.executeBatch(rcn);
+        Test.stopTest();
+
+        System.assertEquals(currentOutdatedTasks + 20, currentOutdatedTasks + [select count() from task where (activitydate < today and status='New')]);
+    }
+    
+}
