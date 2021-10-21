@@ -1,0 +1,41 @@
+public class LeadPhoneTriggerHandler {
+	@future(callout=true)
+    public static void updatePhoneOnLead(String phone, Id leadId){
+		String phoneCode = phone.substringBetween('+', '-');
+        String access_key = '414ee22cff79d2ddfe865d93c10fcc6a';
+        String CallingCodeURL = 'http://api.countrylayer.com/v2/callingcode/';
+        
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        request.setEndpoint(CallingCodeURL+phoneCode+'?access_key='+access_key);
+        request.setMethod('GET');
+
+        
+        HttpResponse response = http.send(request);
+        String countryName;
+
+
+        if( response.getBody().substringBetween('[{', '}]') == null ){
+            Map<String,Object> data = (Map<String,Object>)JSON.deserializeUntyped(response.getBody());
+            countryName = (String)data.get('name');
+		}
+        else{
+            List<Object> fieldList = (List<Object>)JSON.deserializeUntyped(response.getBody());
+            for(Object fld : fieldList){    
+    			Map<String,Object> data = (Map<String,Object>)fld;
+    
+    			countryName = data.get('name').toString();
+			}
+        }
+        
+        Lead triggeredLead = [select id, name, Country_from_Phone__c
+                                   from lead
+                                   where id=:leadId];
+        triggeredLead.Country_from_Phone__c = countryName;
+        update triggeredLead;
+        
+        triggeredLead = [select id, name, Country_from_Phone__c
+                                   from lead
+                                   where id=:leadId];
+    }
+}
