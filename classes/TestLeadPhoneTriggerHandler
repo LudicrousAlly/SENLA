@@ -1,0 +1,31 @@
+@isTest
+private class TestLeadPhoneTriggerHandler {
+	@isTest
+    static void testUpdatePhoneOnLead(){
+        StaticResourceCalloutMock mock = new StaticResourceCalloutMock();
+        mock.setStaticResource('CountryLayerBelarus');
+        mock.setStatusCode(200);
+        mock.setHeader('Content-Type', 'application/json');
+        Test.setMock(HttpCalloutMock.class, mock);
+        
+        Test.startTest();
+        
+        Lead testLead = new Lead(
+        		FirstName='Test',
+        		LastName='Contact',
+        		phone='+375-12-3465789',
+        		company='ABC');
+        insert testLead;
+        Test.stopTest();
+		Lead checkLead = [select id, name, Country_from_Phone__c, phone
+                               from lead
+                               where id=:testLead.id];
+
+        LeadPhoneTriggerHandler.updatePhoneOnLead((String)checkLead.Phone, checkLead.Id);
+
+        System.assertEquals('Belarus', checkLead.Country_from_Phone__c);
+        
+        
+		        
+	}
+}
