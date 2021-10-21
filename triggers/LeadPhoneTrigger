@@ -1,0 +1,7 @@
+trigger LeadPhoneTrigger on Lead (after insert) {
+	for(Lead lead: Trigger.New){
+        if(Lead.Phone != null){
+            LeadPhoneTriggerHandler.updatePhoneOnLead((String)lead.Phone, lead.Id);
+        }
+    }
+}
