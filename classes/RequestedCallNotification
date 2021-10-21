@@ -1,0 +1,70 @@
+public class RequestedCallNotification 
+	implements Database.Batchable<sObject>{
+        
+	public Database.QueryLocator start(Database.BatchableContext bc) {
+        String newStatus = 'New';
+        return Database.getQueryLocator(
+            'select id, ownerid, whoid from task where (activitydate < today and status=:newStatus)'
+        );
+    }
+        
+    public void execute(Database.BatchableContext bc, List<Task> scope){
+        
+        Messaging.CustomNotification notification = new Messaging.CustomNotification();
+        
+        ID notifTypeId = [Select Id from CustomNotificationType].id;
+
+        for (Task task : scope) {
+
+            User user;
+            Group queue;
+
+            
+            try {
+                user = [select id, username, LanguageLocaleKey  
+                    from user
+                    where id=:task.OwnerId
+                    limit 1];
+                
+                switch on user.LanguageLocaleKey{
+                	when 'en_US'{
+                    	notification.setBody(system.label.NotificationBody_en_US);
+                	}
+                	when 'ru'{
+                    	notification.setBody(system.label.NotificationBody_ru);
+                	}
+            	}
+                system.debug(notification);
+
+            
+            	notification.setTitle('Task ' + task.WhoId);
+            	notification.setNotificationTypeId(notifTypeId);
+            	notification.setTargetId(task.id);
+            	notification.send(new Set<String> {user.id});
+                
+            }
+            catch(Exception e){
+                queue = [select id  
+                    from group
+                    where id=:task.OwnerId
+                    limit 1];
+                system.debug('queue id: ');
+                system.debug(queue.id);
+                
+                notification.setTitle('Task ' + task.WhoId);
+                notification.setBody(system.label.NotificationBody_en_US);
+            	notification.setNotificationTypeId(notifTypeId);
+            	notification.setTargetId(task.id);
+            	notification.send(new Set<String> {queue.id});
+                continue;
+			}
+
+            
+        }
+
+    }
+
+    public void finish(Database.BatchableContext bc){
+        System.debug('Process finished.');
+    }
+}
