@@ -1,0 +1,40 @@
+@isTest
+private class TestContactLeadCountryFromPhone {
+
+    @isTest
+    static void testUpdateCountry(){
+        StaticResourceCalloutMock mock = new StaticResourceCalloutMock();
+        mock.setStaticResource('CountryLayerBelarus');
+        mock.setStatusCode(200);
+        mock.setHeader('Content-Type', 'application/json');
+        Test.setMock(HttpCalloutMock.class, mock);
+        
+        Test.startTest();
+        
+        Lead testLead = new Lead(
+        		FirstName='Test',
+        		LastName='Lead',
+        		phone='+375-12-3465789',
+        		company='ABC');
+        insert testLead;
+
+        Contact testContact = new Contact(
+        FirstName='Contact',
+        LastName='Test',
+        phone='+375-98-7132654');
+        insert testContact;
+        
+        Test.stopTest();
+		Lead checkLead = [select id, name, Country_from_Phone__c, phone
+                               from lead
+                               where id=:testLead.id];
+        
+        Contact checkContact = [select id, name, Country_from_Phone__c, phone
+                               from contact
+                               where id=:testContact.id];
+
+        System.assertEquals('Belarus', checkLead.Country_from_Phone__c);
+        System.assertEquals('Belarus', checkContact.Country_from_Phone__c);
+	}
+    
+}
