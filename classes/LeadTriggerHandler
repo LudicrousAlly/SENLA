@@ -1,0 +1,16 @@
+public class LeadTriggerHandler implements Queueable, Database.AllowsCallouts{
+    
+    private List<sObject> objLeads;
+    
+    public LeadTriggerHandler(List<Lead> Leads){
+        List<sObject> temp = new List<sObject>();
+        temp.addAll(Leads);
+        this.objLeads = temp;
+    }
+    
+    public void execute(QueueableContext context){
+        
+        ContactLeadCountryFromPhone.UpdateCountry(objLeads);        
+        
+    }
+}
