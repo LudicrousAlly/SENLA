@@ -1,0 +1,65 @@
+public class ContactLeadCountryFromPhone {
+
+    public static void UpdateCountry(List<sObject> ContactsOrLeads){
+        List<sObject> objectsToUpdate = new List<sObject>();
+        
+        for(sObject obj: ContactsOrLeads){
+            
+            String phoneCode;
+            Http http = new Http();
+            HttpRequest request = new HttpRequest();
+            CountryCodeRequest__mdt CCR = CountryCodeRequest__mdt.getAll().values()[0];
+            String CallingCodeURL = CCR.RequestURL__c;
+            String access_key = CCR.AccessKey__c;
+            request.setMethod('GET');
+            
+            try{
+                Lead temp = (Lead)obj;
+                phoneCode = temp.phone.substringBetween('+', '-');
+            }
+            catch(Exception e){
+                Contact temp = (Contact)obj;
+                phoneCode = temp.phone.substringBetween('+', '-');
+            }
+            
+            request.setEndpoint(CallingCodeURL+phoneCode+'?access_key='+access_key);
+            HttpResponse response = http.send(request);
+    
+            String countryName;
+    
+            if( response.getBody().substringBetween('[{', '}]') == null ){
+                Map<String,Object> data = (Map<String,Object>)JSON.deserializeUntyped(response.getBody());
+                countryName = (String)data.get('name');
+            }
+            else{
+                List<Object> fieldList = (List<Object>)JSON.deserializeUntyped(response.getBody());
+                for(Object fld : fieldList){    
+                    Map<String,Object> data = (Map<String,Object>)fld;	
+                    countryName = data.get('name').toString();
+                }
+            }
+            
+            sObject updatedObject;
+            
+            try{
+                Lead temp = (Lead)obj;
+                updatedObject = [select id, name, Country_from_Phone__c
+                                       from lead
+                                       where id=:temp.Id];
+                updatedObject.put('Country_from_Phone__c', countryName);
+            }
+            catch(Exception e){
+                Contact temp = (Contact)obj;
+                updatedObject = [select id, name, Country_from_Phone__c
+                                       from contact
+                                       where id=:temp.Id];
+                updatedObject.put('Country_from_Phone__c', countryName);
+            }
+            
+            objectsToUpdate.add(updatedObject);
+        }
+        
+        update objectsToUpdate;
+    }
+    
+}
