@@ -1,0 +1,49 @@
+public class RequestedCallNotification implements Database.Batchable<sObject>{
+        
+	public Database.QueryLocator start(Database.BatchableContext bc) {
+        String Status = 'New';
+        return Database.getQueryLocator(
+            'select id, ownerid, whoid from task where (activitydate < today and status=:Status)'
+        );
+    }
+
+    public void execute(Database.BatchableContext bc, List<Task> scope){
+        
+        Messaging.CustomNotification notification = new Messaging.CustomNotification();
+        ID notifTypeId = [Select Id from CustomNotificationType where DeveloperName='OutdatedTasks'].Id; //NotificationType == null??\\
+        notification.setNotificationTypeId(notifTypeId);
+        notification.setTitle(system.label.NotificationTitle);
+        notification.setBody(system.label.NotificationBody);
+        
+        Set<Id> usersIDs = new Set<Id>();
+        Map<Id, List<Id>> UsersAndTargets = new Map<Id, List<Id>>();
+        
+        for(Task task: scope){
+            usersIDs.add(task.OwnerId);
+        }
+        
+        for(Id userId: usersIDs){
+            List<Id> temp = new List<Id>();
+            
+            for(Task task: scope){
+                if(task.OwnerId == userId){
+                    temp.add(task.Id);
+				}
+            }
+            
+            UsersAndTargets.put(userId, temp);
+        }
+        
+        for(Id user: UsersAndTargets.keySet()){
+            for(Id targetTask: UsersAndTargets.get(user)){
+                notification.setTargetId(targetTask);
+                notification.send(new Set<String> {user});
+            }
+        }
+
+    }
+
+    public void finish(Database.BatchableContext bc){
+        System.debug('Process finished.');
+    }
+}
