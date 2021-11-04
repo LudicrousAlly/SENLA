@@ -1,0 +1,71 @@
+<aura:component >
+    <aura:attribute name="company" type="Account"
+         default="{ 'sobjectType': 'Account',
+                        'Name': '',
+                        'Email__c': '',
+                        'Phone': '',
+                        'Type': '' }"/>
+    <aura:registerEvent name="passCompanyInfo" type="c:passCompanyInfo"/>
+    <aura:method name="doInit" action="{!c.doInit}" access="PUBLIC"/>
+    <lightning:layout>
+        <lightning:layoutItem padding="around-small" size="12">
+            
+            <fieldset class="slds-box slds-theme_default slds-container_small">
+                <legend id="companyinformationinfo" class="slds-text-heading_small
+                                                           slds-p-vertical_medium">
+                    Company Information
+                </legend>
+                
+            <div aria-labelledby="companyinformationinfo">
+
+                <lightning:layout >
+                    <lightning:layoutItem padding="around-small" size="4">
+                        
+                        <form class="slds-form_stacked">
+                            <lightning:input aura:id="companyform" label="Company Name"
+                                             name="companyname"
+                                             value="{!v.company.Name}"
+                                             placeholder="Name*"
+                                             variant="label-hidden"
+                                             required="true"/>
+                            <lightning:select aura:id="companyform"
+                                              value="{!v.company.Type}"
+                                              name="companytype"
+                                              label="Company Type"
+                                              variant="label-hidden"
+                                              required="true">
+                                <option value="" disabled="true" >Type*</option>
+                                <option value="Individual">Individual</option>
+                                <option value="Legal entity">Legal entity</option>
+                            </lightning:select>
+                        </form>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem padding="around-small" size="4">
+                        
+                        <form class="slds-form_stacked">
+                            <lightning:input aura:id="companyform" label="Company Phone"
+                                             name="companyphone"
+                                             value="{!v.company.Phone}"
+                                             placeholder="Phone*"
+                                             variant="label-hidden"
+                                             required="true"/>
+                		</form>
+                	</lightning:layoutItem>
+                    <lightning:layoutItem padding="around-small" size="4">
+                        
+                        <form class="slds-form_stacked">
+                            <lightning:input aura:id="companyform" label="Company Email"
+                                             name="companyemail"
+                                             value="{!v.company.Email__c}"
+                                             placeholder="Email*"
+                                             variant="label-hidden"
+                                             required="true"/>
+                        </form>
+                        
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+            </fieldset>
+        </lightning:layoutItem>
+    </lightning:layout>
+</aura:component>
