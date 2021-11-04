@@ -1,0 +1,69 @@
+<aura:component >
+    <aura:attribute name="contact" type="Contact"
+         default="{ 'sobjectType': 'Contact',
+                        'FirstName': '',
+                        'LastName': '',
+                        'Email': '',
+                        'Phone': '' }"/>
+    <aura:registerEvent name="passContactInfo" type="c:passContactInfo"/>
+    <!-- <aura:handler name="init" value="{!this}" action="{!c.doInit}"/> -->
+    <aura:method name="doInit" action="{!c.doInit}" access="PUBLIC"/>
+    
+    <lightning:layout>
+        <lightning:layoutItem padding="around-small" size="12">
+            
+            <fieldset class="slds-box slds-theme_default slds-container_small">
+                <legend id="contactcompanyinformationinfo" class="slds-text-heading_small
+                                                                  slds-p-vertical_medium">
+                    Contact company information
+                </legend>
+
+                <div aria-labelledby="contactcompanyinformationinfo">
+                
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem padding="around-small" size="4">
+                        
+                        <form class="slds-form_stacked">
+                            <lightning:input aura:id="contactcompanyform" label="Contact First Name"
+                                             name="contactfirstname"
+                                             value="{!v.contact.FirstName}"
+                                             placeholder="First Name*"
+                                             variant="label-hidden"
+                                             required="true"/>
+                            <lightning:input aura:id="contactcompanyform" label="Contact Mobile Phone"
+                                             name="contactphone"
+                                             value="{!v.contact.Phone}"
+                                             placeholder="Phone*"
+                                             variant="label-hidden"
+                                             required="true"/>
+                        </form>
+                    </lightning:layoutItem>
+                    
+                    <lightning:layoutItem padding="around-small" size="4">
+                        <form class="slds-form_stacked">
+                            <lightning:input aura:id="contactcompanyform" label="Contact Last Name"
+                                             name="contactlastname"
+                                             value="{!v.contact.LastName}"
+                                             placeholder="Last Name*"
+                                             variant="label-hidden"
+                                             required="true"/>
+                        </form>
+                    </lightning:layoutItem>
+                    
+                    <lightning:layoutItem padding="around-small" size="4">
+                        <form class="slds-form_stacked">
+                            <lightning:input aura:id="contactcompanyform" label="Contact Email"
+                                             value="{!v.contact.Email}"
+                                             name="contactemail"
+                                             placeholder="Email*"
+                                             variant="label-hidden"
+                                             required="true"/>
+                        </form>
+                    </lightning:layoutItem>
+                    
+                </lightning:layout>
+            </div>
+        </fieldset>
+        </lightning:layoutItem>
+    </lightning:layout>  
+</aura:component>
