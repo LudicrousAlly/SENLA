@@ -1,0 +1,214 @@
+public with sharing class CreateRequestController {
+    
+    @AuraEnabled
+    public static Boolean citiesValidation(String city1, String city2){
+        if(city1 == city2) 
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
+	}
+    
+    @AuraEnabled
+    public static void createARequest(Contact contact, Account company, Order order){
+        try{
+            contact = getContact(contact.Phone, contact.Email);
+            assignTask(contact);
+            system.debug('Contact found');
+        }
+        catch(exception e){
+            system.debug('Contact not found');
+            try{
+                contact = convertLead(contact.Phone, contact.Email, contact.FirstName, contact.LastName);
+                system.debug('Lead converted');
+                //newOpportunity(order.Shiping_Name__c, (Integer)order.Cargo_weight__c, order.Cargo_type__c, order.To_City__c, order.From_City__c, contact.Email);
+            }
+            catch(exception ex){
+                system.debug('Lead not found');
+                try{
+                    company = getAccount(company.Email__c);
+                    newContact(contact.Email, contact.Phone, contact.FirstName, contact.LastName, company.Email__c);
+                    newOpportunity(order.Shiping_Name__c, (Integer)order.Cargo_weight__c, order.Cargo_type__c, order.To_City__c, order.From_City__c, contact.Email);
+                    system.debug('Account found');
+                }
+                catch(exception exc){
+                    system.debug('Account not found');
+                    newAccount(company.Name, company.Email__c, company.Phone, company.Type);
+                    newContact(contact.Email, contact.Phone, contact.FirstName, contact.LastName, company.Email__c);
+                    newOpportunity(order.Shiping_Name__c, (Integer)order.Cargo_weight__c, order.Cargo_type__c, order.To_City__c, order.From_City__c, company.Email__c);
+                    system.debug('Account created');
+                }
+			}
+		}
+	}
+    
+    @AuraEnabled
+    public static List<Boolean> citiesAndPhonesValidation(String city1, String city2, String phone1, String phone2){
+        String pattern1 = '^\\+375(-)\\d{2}(-)\\d{7}$';
+        String pattern2 = '^\\+48-\\d{2}-\\d{7}$';
+        String pattern3 = '^\\+7-\\d{3}-\\d{7}$';
+        
+        Boolean testPhone1 = Pattern.matches(pattern1, phone1) || Pattern.matches(pattern2, phone1) || Pattern.matches(pattern3, phone1);
+        Boolean testPhone2 = Pattern.matches(pattern1, phone2) || Pattern.matches(pattern2, phone2) || Pattern.matches(pattern3, phone2);
+        Boolean testCities = city1 != city2;
+        
+        List<Boolean> validationResults = new List<Boolean>{ testPhone1 && testPhone2, testCities};
+        return validationResults;
+    }
+    
+    @AuraEnabled
+    public static Boolean phonesValidation(String phone1, String phone2){
+        String pattern1 = '^\\+375(-)\\d{2}(-)\\d{7}$';
+        String pattern2 = '^\\+48-\\d{2}-\\d{7}$';
+        String pattern3 = '^\\+7-\\d{3}-\\d{7}$';
+        
+        Boolean testPhone1 = Pattern.matches(pattern1, phone1) || Pattern.matches(pattern2, phone1) || Pattern.matches(pattern3, phone1);
+        Boolean testPhone2 = Pattern.matches(pattern1, phone2) || Pattern.matches(pattern2, phone2) || Pattern.matches(pattern3, phone2);
+
+        system.debug('testPhone1 && testPhone2:');
+        system.debug(testPhone1 && testPhone2);
+        if(testPhone1 && testPhone2){
+            return true;
+        }
+        else{
+        	return false;
+        }
+	}
+    
+	@AuraEnabled
+    public static Contact getContact(String phone, String email) {
+        Contact contact;
+        
+        try{
+            contact =
+                    [SELECT Id, Name, Phone, Email 
+                     FROM Contact
+                     WHERE Phone=:phone OR Email=:email
+                     LIMIT 1];
+        }
+        catch(exception e){
+            throw new AuraHandledException('Contact not found');
+        }
+        //throw new AuraHandledException('Contact not found');
+        return contact;
+    }
+
+    
+    @AuraEnabled
+    public static Contact convertLead(String phone, String email, String firstName, String lastName) {
+        
+        Lead lead;
+        Contact contact;
+        
+        try{
+            lead = [SELECT Id, Name, Phone, Email 
+                    FROM Lead
+                    WHERE Phone=:phone OR Email=:email
+                    LIMIT 1];
+            Database.LeadConvert lc = new Database.LeadConvert();
+            
+            Id ownerId = [select user.id FROM user, user.profile where profile.name='Sales Manager' and isActive=true LIMIT 1].Id;
+            lc.setOwnerId(ownerId);
+            lc.setLeadId(lead.id);
+            
+            LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted=true LIMIT 1];
+            lc.setConvertedStatus(convertStatus.MasterLabel);
+            
+            Database.LeadConvertResult lcr = Database.convertLead(lc);
+            
+            contact = [SELECT Id, Name, Phone, Email 
+                       FROM Contact
+                       WHERE Id=:lcr.getContactId()
+                       LIMIT 1];
+        }
+        catch(exception e){
+            throw new AuraHandledException('Lead not found');
+        }
+        
+        return contact;
+    }
+    
+    @AuraEnabled
+    public static Account getAccount(String email){
+        Account account = [SELECT Id, Name, Email__c, Phone, Type
+                       FROM Account
+                       WHERE Email__c=:email
+                       LIMIT 1];
+        return account;
+	}
+    
+    @AuraEnabled
+    public static void newAccount(String name, String email, String phone, String accountType){
+        User user = [SELECT Id, Name, ProfileId
+                    FROM User
+                    WHERE Profile.Name='Sales Manager' and IsActive=True
+                    LIMIT 1];
+        
+        Account acc = new Account(Name=name,
+                                 Email__c=email,
+                                 OwnerId=user.Id,
+                                 Phone=phone,
+                                 Type=accountType);
+        system.debug('acc to insert:\n' + acc);
+        insert acc;
+    }
+    
+    @AuraEnabled
+    public static void newContact(String contactEmail, String phone, String firstName, String lastName, String companyEmail){
+        
+        Account account = [SELECT Id, Name, Email__c, Phone, Type
+                           FROM Account
+                           WHERE Email__c=:companyEmail
+                           LIMIT 1];
+        
+        Contact contact = new Contact(AccountId=account.Id,
+                                      FirstName=firstName,
+                                      LastName=lastName,
+                                      Email=contactEmail,
+                                      Language__c='EN',
+                                      Phone=phone);
+        system.debug('contact to insert:\n' + contact);
+        system.debug('is there duplicate object?:' + [SELECT Count() From Contact WHERE FirstName=:firstName AND LastName=:lastName]);
+        if([SELECT Count() From Contact WHERE FirstName=:firstName AND LastName=:lastName] == 0){
+            insert contact;
+        }
+    }
+    
+    @AuraEnabled
+    public static void newOpportunity(String shippingName, Integer cargoWeight, String cargoType, String toCity, String fromCity, String email){
+        Account account = [SELECT Id, Name, Email__c, Phone, Type, OwnerId
+                           FROM Account
+                           WHERE Email__c=:email
+                           LIMIT 1];
+        Date firstDayOfMonth = System.today().toStartOfMonth();
+        Date lastDayOfMonth = firstDayOfMonth.addDays(Date.daysInMonth(firstDayOfMonth.year(), firstDayOfMonth.month()) - 1);
+        
+        Opportunity opp = new Opportunity(AccountId=account.Id,
+                                          Name='CreatedOpp',
+                                          Amount=0,
+                                          StageName='New',
+                                          OwnerId=account.OwnerId,
+                                          CloseDate=lastDayOfMonth,
+                                          Probability=10,
+                                          Shiping_Name__c=shippingName,
+                                          Cargo_Weight__c=cargoWeight,
+                                          Cargo_Type__c=cargoType,
+                                          To_City__c=toCity,
+                                          From_City__c=fromCity);
+        insert opp;
+    }
+    
+    @AuraEnabled
+    public static void assignTask(Contact contact){
+        Task assignedTask = new Task(
+            WhoId=contact.Id,
+            Status='New',
+            Priority='Normal'
+        );
+        
+        insert assignedTask;
+	}
+}
