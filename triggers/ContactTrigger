@@ -1,8 +1,3 @@
-trigger ContactTrigger on Contact (before insert, after insert, before update, after update, before delete, after delete, after undelete) {
-	
-    if(Trigger.isInsert && Trigger.isAfter){
-    	
-        ContactTriggerHandler cth = new ContactTriggerHandler(Trigger.New);
-        System.enqueueJob(cth);
-    }
+trigger ContactTrigger on Contact (after insert) {
+    ContactTriggerHandler.setCountryFromPhone(Trigger.New);
 }
