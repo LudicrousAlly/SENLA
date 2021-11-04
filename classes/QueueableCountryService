@@ -1,0 +1,13 @@
+public class QueueableCountryService implements Queueable, Database.AllowsCallouts{
+    
+    private List<sObject> objectsToUpdate = new List<sObject>();
+    
+    public QueueableCountryService(List<sObject> objects){
+        this.objectsToUpdate.addAll(objects);
+    }
+    
+    public void execute(QueueableContext context){
+        ContactLeadCountryFromPhone.updateCountry(this.objectsToUpdate);
+    }
+
+}
