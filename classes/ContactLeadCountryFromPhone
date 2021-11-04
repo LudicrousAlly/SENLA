@@ -1,32 +1,43 @@
 public class ContactLeadCountryFromPhone {
 
-    public static void UpdateCountry(List<sObject> ContactsOrLeads){
-        List<sObject> objectsToUpdate = new List<sObject>();
+    public static void updateCountry(List<sObject> objects){
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        CountryCodeRequest__mdt countryCodeRequest = CountryCodeRequest__mdt.getAll().values()[0];
+        String callingCodeURL = countryCodeRequest.RequestURL__c;
+        String accessKey = countryCodeRequest.AccessKey__c;
+        request.setMethod('GET');
         
-        for(sObject obj: ContactsOrLeads){
-            
+        List<sObject> editableObjects = new List<sObject>(); //Our 'objects' that we are able to edit
+        for(sObject obj: objects){
+            sObject objToAdd;
+            try {
+            	objToAdd = [SELECT Id, Name, Country_From_Phone__c, Phone FROM Contact WHERE Id=:obj.get('Id').toString()];
+            }
+            catch(exception e) {
+                objToAdd = [SELECT Id, Name, Country_From_Phone__c, Phone FROM Lead WHERE Id=:obj.get('Id').toString()];
+            }
+            editableObjects.add(objToAdd);
+        }
+        
+        Map<String, List<sObject>> objectsByPhoneCode = new Map<String, List<sObject>>();
+        for(sObject obj: editableObjects){
             String phoneCode;
-            Http http = new Http();
-            HttpRequest request = new HttpRequest();
-            CountryCodeRequest__mdt CCR = CountryCodeRequest__mdt.getAll().values()[0];
-            String CallingCodeURL = CCR.RequestURL__c;
-            String access_key = CCR.AccessKey__c;
-            request.setMethod('GET');
+            phoneCode = obj.get('Phone').toString().substringBetween('+', '-');
             
-            try{
-                Lead temp = (Lead)obj;
-                phoneCode = temp.phone.substringBetween('+', '-');
+            if(objectsByPhoneCode.get(phoneCode) == null) {
+                objectsByPhoneCode.put(phoneCode, new List<sObject> { obj });
+            } else {
+                objectsByPhoneCode.get(phoneCode).add(obj);
             }
-            catch(Exception e){
-                Contact temp = (Contact)obj;
-                phoneCode = temp.phone.substringBetween('+', '-');
-            }
-            
-            request.setEndpoint(CallingCodeURL+phoneCode+'?access_key='+access_key);
+        }
+        
+        List<sObject> objectsToUpdate = new List<sObject>();
+        for(String phoneCode: objectsByPhoneCode.keySet()){
+            request.setEndpoint(callingCodeURL+phoneCode+'?access_key='+accessKey);
             HttpResponse response = http.send(request);
-    
             String countryName;
-    
+            
             if( response.getBody().substringBetween('[{', '}]') == null ){
                 Map<String,Object> data = (Map<String,Object>)JSON.deserializeUntyped(response.getBody());
                 countryName = (String)data.get('name');
@@ -39,27 +50,13 @@ public class ContactLeadCountryFromPhone {
                 }
             }
             
-            sObject updatedObject;
-            
-            try{
-                Lead temp = (Lead)obj;
-                updatedObject = [select id, name, Country_from_Phone__c
-                                       from lead
-                                       where id=:temp.Id];
-                updatedObject.put('Country_from_Phone__c', countryName);
+            for(sObject obj: objectsByPhoneCode.get(phoneCode)){           
+                obj.put('Country_from_Phone__c', countryName);                
+                objectsToUpdate.add(obj);
             }
-            catch(Exception e){
-                Contact temp = (Contact)obj;
-                updatedObject = [select id, name, Country_from_Phone__c
-                                       from contact
-                                       where id=:temp.Id];
-                updatedObject.put('Country_from_Phone__c', countryName);
-            }
-            
-            objectsToUpdate.add(updatedObject);
         }
-        
         update objectsToUpdate;
+
     }
     
 }
