@@ -1,0 +1,22 @@
+({
+	createRequest : function(component, event, helper) {
+        helper.checkValidity(component, event, helper);
+	},
+    
+    handleGetContactInfo: function(component, event, helper) {
+
+        let receivedContact = event.getParam("Contact");
+        component.set("v.contact", receivedContact);
+
+    },
+    
+    handleGetCompanyInfo: function(component, event, helper){
+        let receivedCompany = event.getParam("Company");
+        component.set("v.company", receivedCompany);
+    },
+    
+    handleGetOrderInfo: function(component, event, helper){
+        let receivedOrder = event.getParam("Order");
+        component.set("v.order", receivedOrder);
+    }
+})
