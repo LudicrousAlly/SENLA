@@ -1,0 +1,124 @@
+<aura:component >
+    <aura:attribute name="order" type="Order"
+         default="{ 'sobjectType': 'Order',
+                        'Shiping_Name__c': '',
+                        'Cargo_weight__c': '',
+                        'Cargo_type__c': '',
+                        'From_City__c': '',
+                  		'To_City__c': '',
+                  		'EndDate': '',
+                  		'Description': '' }"/>
+    <aura:registerEvent name="passOrderInfo" type="c:passOrderInfo"/>
+    <aura:method name="doInit" action="{!c.doInit}" access="PUBLIC"/>
+    <lightning:layout>
+        <lightning:layoutItem padding="around-small" size="12">
+            <fieldset class="slds-box slds-theme_default slds-container_small">
+                <legend id="contactcompanyinformationinfo" class="slds-text-heading_small
+                                                                  slds-p-vertical_medium">
+                    Order information
+                </legend>
+
+            	<div aria-labelledby="contactcompanyinformationinfo">
+                
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem padding="around-small horizontal-small" size="4">
+                        
+                        <form class="slds-form_stacked">
+                            <lightning:input aura:id="orderform" label="Shipping Name"
+                                             name="ordershippingname"
+                                             value="{!v.order.Shiping_Name__c}"
+                                             placeholder="Shipping Name*"
+                                             variant="label-hidden"
+                                             required="true"/>
+                            <lightning:select aura:id="orderform" label="From (City)"
+                                             value="{!v.order.From_City__c}"
+                                             name="orderfromcity"
+                                             variant="label-hidden"
+                                             required="true">
+                                <option value="" disabled="true">From (City)*</option>
+                                <option value="Minsk">Minsk</option>
+                                <option value="Vitebsk">Vitebsk</option>
+                                <option value="Grodno">Grodno</option>
+                                <option value="Brest">Brest</option>
+                                <option value="Babruysk">Babruysk</option>
+                                <option value="Pinsk">Pinsk</option>
+                                <option value="Orsha">Orsha</option>
+                                <option value="Mazyr">Mazyr</option>
+                                <option value="Salihorsk">Salihorsk</option>
+                            </lightning:select>
+                            <!-- <lightning:textarea aura:id="orderform" value="{!v.order.Description}" name="ordercomments" placeholder="Comments"/> -->                           
+                        </form>
+                      </lightning:layoutItem>
+                            
+                      <lightning:layoutItem padding="around-small horizontal-small" size="4">
+                                
+                          <form class="slds-form_stacked">
+                            <lightning:input aura:id="orderform" label="Cargo Weight"
+                                             name="ordercargoweight"
+                                             value="{!v.order.Cargo_weight__c}"
+                                             placeholder="Cargo Weight*"
+                                             variant="label-hidden"
+                                             required="true"/>                              
+                            <lightning:select aura:id="orderform" label="To (City)"
+                                             name="ordertocity"
+                                             value="{!v.order.To_City__c}"
+                                             variant="label-hidden"
+                                             class="slds-col slds-float_right slds-has-flexi-truncate"
+                                             required="true">
+                                <option value="" disabled="true">To (City)*</option>
+                                <option value="Minsk">Minsk</option>
+                                <option value="Vitebsk">Vitebsk</option>
+                                <option value="Grodno">Grodno</option>
+                                <option value="Brest">Brest</option>
+                                <option value="Babruysk">Babruysk</option>
+                                <option value="Pinsk">Pinsk</option>
+                                <option value="Orsha">Orsha</option>
+                                <option value="Mazyr">Mazyr</option>
+                                <option value="Salihorsk">Salihorsk</option>
+                            </lightning:select>
+                          </form>
+                       </lightning:layoutItem>
+                              
+                       <lightning:layoutItem padding="around-small horizontal-small" size="4">
+                                
+                          <form class="slds-form_stacked">
+                            <lightning:select aura:id="orderform" label="Cargo Type"
+                                             name="ordercargotype"
+                                             value="{!v.order.Cargo_type__c}"
+                                             variant="label-hidden"
+                                             required="true">
+                                <option value="" disabled="true">Cargo Type*</option>
+                                <option value="Food">Food</option>
+                                <option value="Cars and Other Vehicles">Cars and Other Vehicles</option>
+                                <option value="Animals">Animals</option>
+                                <option value="Technics">Technics</option>
+                            </lightning:select>
+                            <lightning:input aura:id="orderform" label="Date"
+                                             name="orderdate"
+                                             value="{!v.order.EndDate}"
+                                             placeholder="Date*"
+                                             variant="label-hidden"
+                                             type="date"
+                                             required="true"/>
+                            <!-- <lightning:input aura:id="orderform" label="Comments"
+                                             value="{!v.order.Description}"
+                                             name="ordercomments"
+                                             placeholder="Comments"
+                                             required="true"/> -->
+                        </form>
+                        
+                    </lightning:layoutItem>
+                    
+                    <lightning:layoutItem padding="around-small" size="12">
+                        
+                        <form class="slds-form_stacked">
+                            <lightning:textarea aura:id="orderform" value="{!v.order.Description}" name="ordercomments" placeholder="Comments" variant="label-hidden"/>
+                        </form>
+                    </lightning:layoutItem>
+                    
+                </lightning:layout>
+            </div>
+        </fieldset>
+        </lightning:layoutItem>
+    </lightning:layout>
+</aura:component>
