@@ -1,0 +1,53 @@
+<aura:component controller="CreateRequestController" implements="forceCommunity:availableForAllPageTypes">
+    <aura:attribute name="contact" type="Contact"
+         default="{ 'sobjectType': 'Contact',
+                        'FirstName': '',
+                        'LastName': '',
+                        'Email': '',
+                        'Phone': '' }"/>
+    <aura:attribute name="company" type="Account"
+         default="{ 'sobjectType': 'Account',
+                        'Name': '',
+                        'Email__c': '',
+                        'Phone': '',
+                        'Type': '' }"/>
+    <aura:attribute name="order" type="Order"
+         default="{ 'sobjectType': 'Order',
+                        'Shiping_Name__c': '',
+                        'Cargo_weight__c': '',
+                        'Cargo_type__c': '',
+                        'From_City__c': '',
+                  		'To_City__c': '',
+                  		'EndDate': '',
+                  		'Description': '' }"/>
+    
+    <aura:handler name="passContactInfo" event="c:passContactInfo" action="{!c.handleGetContactInfo}"/>
+    <aura:handler name="passCompanyInfo" event="c:passCompanyInfo" action="{!c.handleGetCompanyInfo}"/>
+    <aura:handler name="passOrderInfo" event="c:passOrderInfo" action="{!c.handleGetOrderInfo}"/>
+    
+    <lightning:layout multipleRows="true">
+        <lightning:layoutItem>
+            <fieldset class="slds-box slds-theme_default slds-container_small">
+                
+                <lightning:layoutItem>
+                    <form class="slds-form_stacked">
+                        <c:RequestCompanyInformation aura:id="companyInformation"/>
+                        <c:RequestContactCompanyInformation aura:id="contactInformation"/>
+                        <c:OrderInformation aura:id="orderInformation"/>
+                        
+                    </form>
+                </lightning:layoutItem>
+                
+                <lightning:layoutItem alignmentBump="left" size="4">
+                    <form class="slds-form_stacked">
+                        <lightning:button label="Create a Request"
+                                          class="slds-m-top_medium"
+                                          variant="brand"
+                                          onclick="{! c.createRequest }"/>
+                    </form>
+                </lightning:layoutItem>
+                
+            </fieldset>
+        </lightning:layoutItem>
+    </lightning:layout>
+</aura:component>
