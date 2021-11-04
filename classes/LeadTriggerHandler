@@ -1,16 +1,7 @@
-public class LeadTriggerHandler implements Queueable, Database.AllowsCallouts{
+public class LeadTriggerHandler{
     
-    private List<sObject> objLeads;
-    
-    public LeadTriggerHandler(List<Lead> Leads){
-        List<sObject> temp = new List<sObject>();
-        temp.addAll(Leads);
-        this.objLeads = temp;
-    }
-    
-    public void execute(QueueableContext context){
-        
-        ContactLeadCountryFromPhone.UpdateCountry(objLeads);        
-        
+    public static void setCountryFromPhone(List<sObject> objects){
+        QueueableCountryService queueableCountryService = new QueueableCountryService(objects);
+        System.enqueueJob(queueableCountryService);
     }
 }
