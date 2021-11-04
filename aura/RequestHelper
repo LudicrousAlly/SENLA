@@ -1,0 +1,101 @@
+({ 	
+    checkValidity: function(component, event, helper){
+        let contactComponent = component.find('contactInformation');
+        let orderComponent = component.find('orderInformation');
+        let companyComponent = component.find('companyInformation');
+        
+        companyComponent.doInit(companyComponent, event, helper);
+        orderComponent.doInit(orderComponent, event, helper);
+        contactComponent.doInit(contactComponent, event, helper);
+        
+        var companyValid = companyComponent.find('companyform').reduce(function (validSoFar, inputCmp) {
+            inputCmp.showHelpMessageIfInvalid();
+            return validSoFar && !inputCmp.get('v.validity').valueMissing;
+        }, true);
+        
+        var orderValid = orderComponent.find('orderform').reduce(function (validSoFar, inputCmp) {
+            inputCmp.showHelpMessageIfInvalid();
+            return validSoFar && !inputCmp.get('v.validity').valueMissing;
+        }, true);
+        
+        var contactValid = contactComponent.find('contactcompanyform').reduce(function (validSoFar, inputCmp) {
+            inputCmp.showHelpMessageIfInvalid();
+            return validSoFar && !inputCmp.get('v.validity').valueMissing;
+        }, true);
+        
+        let allValid = companyValid && orderValid && contactValid;        
+        let toCity = component.get("v.order.To_City__c");
+        let fromCity = component.get("v.order.From_City__c");
+        let contactPhone = component.get("v.contact.Phone");
+        let companyPhone = component.get("v.company.Phone");
+        let citiesValidation;
+        let phonesValidation;
+        
+        let citiesAndPhonesValidation = component.get("c.citiesAndPhonesValidation");
+        citiesAndPhonesValidation.setParams({
+            city1: toCity,
+            city2: fromCity,
+            phone1: contactPhone,
+            phone2: companyPhone
+        });
+        
+        citiesAndPhonesValidation.setCallback(this, function(response){
+            let state = response.getState();
+            if(state == "SUCCESS"){
+                let validationResults = response.getReturnValue();
+                phonesValidation = validationResults[0];
+                citiesValidation = validationResults[1];
+                
+                if(citiesValidation){
+                    if(phonesValidation){
+                        if(allValid){
+                            let createARequest = component.get("c.createARequest");
+                            createARequest.setParams({
+                                contact: component.get("v.contact"),
+                                company: component.get("v.company"),
+                                order: component.get("v.order")
+                            });
+                            
+                            createARequest.setCallback(this, function(anotherResponse){
+                                let anotherState = response.getState();
+                                if(anotherState == "SUCCESS"){
+                                    alert('Process launched successfully!');
+                                }
+                                else if(anotherState == "ERROR"){
+                                    var anotherErrors = anotherResponse.getError();
+                                    if (anotherErrors) {
+                                        if (anotherErrors[0] && anotherErrors[0].message) {
+                                            console.log("Error message: " + 
+                                                        anotherErrors[0].message);
+                                        }
+                                    } else {
+                                        console.log("Unknown error");
+                                    }
+                                }
+                            });
+                            $A.enqueueAction(createARequest);
+                        }
+                    }
+                    else{
+                        alert('Phones be of the following formats:\n+375-XX-XXXXXXX\n+48-XX-XXXXXXX\n+7-XXX-XXXXXXX');
+                    }
+                }
+                else{
+                    alert('From (City) and To (City) fields must differ.');
+                }
+            }
+            else if( state == "ERROR"){
+                var errors = response.getError();
+                if (errors) {
+                    if (errors[0] && errors[0].message) {
+                        console.log("Error message: " + 
+                                 errors[0].message);
+                    }
+                } else {
+                    console.log("Unknown error");
+                }
+            }
+        });
+        $A.enqueueAction(citiesAndPhonesValidation);
+	}
+})
