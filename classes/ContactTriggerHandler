@@ -1,16 +1,7 @@
-public class ContactTriggerHandler implements Queueable, Database.AllowsCallouts{
+public class ContactTriggerHandler {
     
-    private List<sObject> objContacts;
-    
-    public ContactTriggerHandler(List<Contact> Contacts){
-        List<sObject> temp = new List<sObject>();
-        temp.addAll(Contacts);
-        this.objContacts = temp;
-    }
-    
-    public void execute(QueueableContext context){
-        
-        ContactLeadCountryFromPhone.UpdateCountry(objContacts);
-
+    public static void setCountryFromPhone(List<sObject> objects){
+        QueueableCountryService queueableCountryService = new QueueableCountryService(objects);
+        System.enqueueJob(queueableCountryService);
     }
 }
